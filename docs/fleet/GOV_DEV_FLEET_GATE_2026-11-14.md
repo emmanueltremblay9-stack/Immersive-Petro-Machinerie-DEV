@@ -85,3 +85,11 @@ Restent **OPEN / PROPOSED** : métrique et gabarit définitifs des 25 blocs, cap
 La présente révision n'ajoute que ce document, dans `docs/fleet/`, sur une branche de revue dédiée. Aucun `AGENTS.md`, Java, Gradle, JSON de jeu, modèle, renderer, texture, monde ou JAR n'est touché. Ne pas lancer un build factice pour prouver le comportement : aucune source exécutable n'a changé. Pas de Notion, Vault, ChatGPT Project installation, tag, Release, upload ou fusion.
 
 **Verdict limité :** `DEV_DOCS_READY / P00_STILL_PARTIAL / RUNTIME_NOT_RUN`. L'écriture/readback et la PR Draft sont des preuves de dépôt documentaire uniquement.
+
+## Actualisation vérifiée — 15 novembre 2026
+
+Les observations du 14 novembre ci-dessus restent un état historique du dépôt distant, pas la situation actuelle du candidat local. La [qualification P00/P01 fusionnée dans DEV #5](https://github.com/emmanueltremblay9-stack/Immersive-Petro-Machinerie-DEV/blob/7b6c19cb2a6a80fc5c92e9b5f2f35f8390826a57/docs/habitat/P00_P01_TRACTION_QUALIFICATION_2026-11-15.md) identifie désormais le candidat **0.1.23**, HEAD `b0861152e7acfb62e397ece51e90a3288b5909a5` avec modifications locales préservées. Son build de référence et ses 153 entrées JAR ont été vérifiés dans cette qualification ; `test NO-SOURCE` ne prouve aucun test automatisé.
+
+SHA-256 du JAR reconstruit : `48137b0f667d0da1f0a5ad9e8b3922dcd258c5cd8d8820798ccd867b946f43dd`. Cette preuve ne transfère pas le source local dans le `main` distant 0.1.0 et ne valide ni GameTests, ni traction, ni HUD en jeu. Les écarts de l'audit distant doivent être revérifiés sur le candidat avant correction. Ne pas écraser le travail non commité ni assimiler le contrat de profils MK à une entité Digger jouable.
+
+Cette actualisation est documentaire : aucun nouveau build, GameTest, runtime, changement de mécanique ou levée de restriction native. L'essai LAB prévu par P00/P01 reste distinct ; les contrats proposés ne deviennent pas approuvés par cette note.
