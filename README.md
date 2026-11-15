@@ -2,6 +2,8 @@
 
 **Add-on non officiel pour Minecraft Java 1.21.1 / NeoForge**, consacré à l'intégration d'Immersive Machinery, Immersive Engineering et Immersive Petroleum. Le mod ID est `immersive_petro_machinery`.
 
+> **Actualisation :** le candidat local 0.1.23 a depuis été identifié et compilé dans la qualification P00/P01 du 15 novembre, référencée en fin de page. Le paragraphe suivant décrit la revue historique du 14 novembre.
+
 > **Portée de ce dépôt :** les déclarations et fonctionnalités ci-dessous concernent le code **GitHub distant**. Un candidat local plus récent a été rapporté, mais sa révision, ses fichiers modifiés, son build et son JAR n'ont pas été vérifiés ici. La présence d'une conception ou d'un test ne démontre pas son exécution ou sa publication.
 
 ## État du code accessible
@@ -60,3 +62,11 @@ Aucune modification implicite de la GUI, du renderer ou du transfert fluide du T
 Les dépendances à d'autres mods ne constituent pas une autorisation de copier leurs codes ou assets. Vérifier licence, provenance, attribution et redistribution avant tout réemploi. La métadonnée TOML du `main` indique actuellement `All Rights Reserved` ; aucun statut GPL ou permission générale de réutilisation n'est déduit de ce README.
 
 **Prochaine étape technique admissible :** réconcilier le véritable workspace local (branche, HEAD/tree, état modifié, versions, artefacts et tests), préserver tout travail non poussé, puis qualifier la tranche de code concernée. Ni une PR documentaire ni ce README ne certifient un build, un GameTest, une installation ou une version publiable.
+
+## Actualisation vérifiée — 15 novembre 2026
+
+Les observations du 14 novembre ci-dessus restent un état historique du dépôt distant, pas la situation actuelle du candidat local. La [qualification P00/P01 fusionnée dans DEV #5](https://github.com/emmanueltremblay9-stack/Immersive-Petro-Machinerie-DEV/blob/7b6c19cb2a6a80fc5c92e9b5f2f35f8390826a57/docs/habitat/P00_P01_TRACTION_QUALIFICATION_2026-11-15.md) identifie désormais le candidat **0.1.23**, HEAD `b0861152e7acfb62e397ece51e90a3288b5909a5` avec modifications locales préservées. Son build de référence et ses 153 entrées JAR ont été vérifiés dans cette qualification ; `test NO-SOURCE` ne prouve aucun test automatisé.
+
+SHA-256 du JAR reconstruit : `48137b0f667d0da1f0a5ad9e8b3922dcd258c5cd8d8820798ccd867b946f43dd`. Cette preuve ne transfère pas le source local dans le `main` distant 0.1.0 et ne valide ni GameTests, ni traction, ni HUD en jeu. Les écarts de l'audit distant doivent être revérifiés sur le candidat avant correction. Ne pas écraser le travail non commité ni assimiler le contrat de profils MK à une entité Digger jouable.
+
+Cette actualisation est documentaire : aucun nouveau build, GameTest, runtime, changement de mécanique ou levée de restriction native. L'essai LAB prévu par P00/P01 reste distinct ; les contrats proposés ne deviennent pas approuvés par cette note.
