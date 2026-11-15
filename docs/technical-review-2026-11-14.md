@@ -54,3 +54,11 @@ Ces IDs sont **des repères d'audit**, pas une seconde file de tâches, des déc
 - GOV/Notion assurent les décisions de conception ; le workspace sélectionné prouve le code. Ce document n'actualise ni GOV, ni Notion, ni le poste local.
 
 **Limite de validation du présent changement documentaire :** lecture, écriture et comparaison de fichiers Git peuvent démontrer uniquement la persistance du texte. Aucun Java, Gradle, JSON de jeu, modèle, texture, NBT ou gameplay n'est modifié et aucun test runtime n'est déclaré réussi.
+
+## Actualisation vérifiée — 15 novembre 2026
+
+Les observations du 14 novembre ci-dessus restent un état historique du dépôt distant, pas la situation actuelle du candidat local. La [qualification P00/P01 fusionnée dans DEV #5](https://github.com/emmanueltremblay9-stack/Immersive-Petro-Machinerie-DEV/blob/7b6c19cb2a6a80fc5c92e9b5f2f35f8390826a57/docs/habitat/P00_P01_TRACTION_QUALIFICATION_2026-11-15.md) identifie désormais le candidat **0.1.23**, HEAD `b0861152e7acfb62e397ece51e90a3288b5909a5` avec modifications locales préservées. Son build de référence et ses 153 entrées JAR ont été vérifiés dans cette qualification ; `test NO-SOURCE` ne prouve aucun test automatisé.
+
+SHA-256 du JAR reconstruit : `48137b0f667d0da1f0a5ad9e8b3922dcd258c5cd8d8820798ccd867b946f43dd`. Cette preuve ne transfère pas le source local dans le `main` distant 0.1.0 et ne valide ni GameTests, ni traction, ni HUD en jeu. Les écarts de l'audit distant doivent être revérifiés sur le candidat avant correction. Ne pas écraser le travail non commité ni assimiler le contrat de profils MK à une entité Digger jouable.
+
+Cette actualisation est documentaire : aucun nouveau build, GameTest, runtime, changement de mécanique ou levée de restriction native. L'essai LAB prévu par P00/P01 reste distinct ; les contrats proposés ne deviennent pas approuvés par cette note.
