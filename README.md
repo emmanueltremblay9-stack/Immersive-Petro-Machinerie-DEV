@@ -70,3 +70,9 @@ Les observations du 14 novembre ci-dessus restent un état historique du dépôt
 SHA-256 du JAR reconstruit : `48137b0f667d0da1f0a5ad9e8b3922dcd258c5cd8d8820798ccd867b946f43dd`. Cette preuve ne transfère pas le source local dans le `main` distant 0.1.0 et ne valide ni GameTests, ni traction, ni HUD en jeu. Les écarts de l'audit distant doivent être revérifiés sur le candidat avant correction. Ne pas écraser le travail non commité ni assimiler le contrat de profils MK à une entité Digger jouable.
 
 Cette actualisation est documentaire : aucun nouveau build, GameTest, runtime, changement de mécanique ou levée de restriction native. L'essai LAB prévu par P00/P01 reste distinct ; les contrats proposés ne deviennent pas approuvés par cette note.
+
+## HUD pendant la conduite — guide de raccordement
+
+Le HUD est destiné au joueur qui conduit réellement la machine, pas au menu Garage. Le [guide candidat GOV épinglé](https://github.com/emmanueltremblay9-stack/Immersive_Petro-Machinerie_GPT/blob/7c09789d70ab46ffd0dc84f58626af4c41883a30/guides/IPM_HUD_CONDUITE_2026-11-15.md) référence la maquette inspectée et le tri essentiel : **2 PNG (fond + atlas)** au lieu de charger les 76 PNG du kit. Les originaux restent conservés.
+
+Raccordement NON RÉALISÉ : identifier conducteur, véhicule et états serveur réels ; ne pas employer les réservoirs Garage comme données embarquées. Le Power graphique ne crée pas de commande moteur ni de capture souris pendant la conduite. Vérifier états inconnus/périmés, sortie du véhicule, overlays, GUI scale et multijoueur avant toute affirmation d'intégration. Les contrôles graphiques et de présentation ne sont pas des tests Minecraft. Aucun son modifié.
