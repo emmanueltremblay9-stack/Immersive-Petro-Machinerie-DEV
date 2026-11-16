@@ -35,6 +35,8 @@ public final class DockingControllerBlockEntity extends BlockEntity {
     private static final String FUEL_TANK_TAG = "FuelTank";
     private static final String LUBRICANT_TANK_TAG = "LubricantTank";
     private static final String GARAGE_UPGRADES_TAG = "GarageUpgrades";
+    private static final String RECOVERY_TAG = "RecoveryQuarantine";
+    private ListTag recoveryQuarantine = new ListTag();
     private static final int DOCK_TANK_CAPACITY = 16_000;
     private static final int GARAGE_UPGRADE_SLOT_LIMIT = 1;
 
@@ -159,7 +161,8 @@ public final class DockingControllerBlockEntity extends BlockEntity {
         return lockedTunnelDigger != null
                 || fuelTank.getFluidAmount() > 0
                 || lubricantTank.getFluidAmount() > 0
-                || hasGarageUpgradeItems();
+                || hasGarageUpgradeItems()
+                || !recoveryQuarantine.isEmpty();
     }
 
     public boolean hasProtectedStateForFormation() {
@@ -172,6 +175,7 @@ public final class DockingControllerBlockEntity extends BlockEntity {
         appendProtectedState(summary, fuelTank.getFluidAmount() > 0, "fuel tank");
         appendProtectedState(summary, lubricantTank.getFluidAmount() > 0, "lubricant tank");
         appendProtectedState(summary, hasGarageUpgradeItems(), "garage upgrades");
+        appendProtectedState(summary, !recoveryQuarantine.isEmpty(), "quarantined save data");
         return summary.isEmpty() ? "none" : summary.toString();
     }
 
@@ -247,36 +251,87 @@ public final class DockingControllerBlockEntity extends BlockEntity {
                 ? tag.getUUID(LOCKED_TUNNEL_DIGGER_TAG)
                 : null;
         lockedTunnelDiggerName = lockedTunnelDigger == null ? "" : tag.getString(LOCKED_TUNNEL_DIGGER_NAME_TAG);
-        fuelTank.readFromNBT(registries, tag.getCompound(FUEL_TANK_TAG));
-        lubricantTank.readFromNBT(registries, tag.getCompound(LUBRICANT_TANK_TAG));
-        sanitizeLoadedFluidTanks();
-        loadGarageUpgradeInventory(registries, tag.getCompound(GARAGE_UPGRADES_TAG));
-        normalizeLoadedGarageUpgradeSlots();
+        recoveryQuarantine = new ListTag();
+        Tag existingRecovery = tag.get(RECOVERY_TAG);
+        if (existingRecovery instanceof ListTag list && (list.isEmpty() || list.getElementType() == Tag.TAG_COMPOUND)) {
+            recoveryQuarantine = list.copy();
+        } else if (existingRecovery != null) {
+            quarantine(RECOVERY_TAG, existingRecovery);
+        }
+        loadTankPreserving(registries, tag.get(FUEL_TANK_TAG), fuelTank, true, FUEL_TANK_TAG);
+        loadTankPreserving(registries, tag.get(LUBRICANT_TANK_TAG), lubricantTank, false, LUBRICANT_TANK_TAG);
+        // Reset on every load, including repeated loadWithComponents on the same instance.
+        for (int slot = 0; slot < GARAGE_UPGRADE_SLOTS; slot++) {
+            garageUpgradeInventory.setStackInSlot(slot, ItemStack.EMPTY);
+        }
+        Tag rawUpgrades = tag.get(GARAGE_UPGRADES_TAG);
+        if (rawUpgrades != null) {
+            if (canLoadUpgradesWithoutLoss(registries, rawUpgrades)) {
+                loadGarageUpgradeInventory(registries, (CompoundTag) rawUpgrades);
+            } else {
+                quarantine(GARAGE_UPGRADES_TAG, rawUpgrades);
+            }
+        }
     }
 
-    private void sanitizeLoadedFluidTanks() {
-        sanitizeLoadedTank(fuelTank, true);
-        sanitizeLoadedTank(lubricantTank, false);
+    /** Opaque, non-operational archive. Never automatically restore or expose via capabilities. */
+    private void quarantine(String source, Tag raw) {
+        CompoundTag entry = new CompoundTag();
+        entry.putString("Source", source);
+        entry.put("Raw", raw.copy());
+        recoveryQuarantine.add(entry);
+        setChanged();
     }
 
-    private void sanitizeLoadedTank(FluidTank tank, boolean fuel) {
-        FluidStack fluid = tank.getFluid();
-        if (fluid.isEmpty()) {
+    private void loadTankPreserving(HolderLookup.Provider registries, @Nullable Tag raw,
+            FluidTank tank, boolean fuel, String source) {
+        tank.setFluid(FluidStack.EMPTY);
+        if (raw == null) return;
+        if (!(raw instanceof CompoundTag compound)) {
+            quarantine(source, raw);
             return;
         }
-
-        boolean valid = fuel ? DockFluidFilters.isFuel(fluid) : DockFluidFilters.isLubricant(fluid);
-        if (!valid) {
-            tank.setFluid(FluidStack.EMPTY);
-            setChanged();
-            return;
+        try {
+            tank.readFromNBT(registries, compound);
+            FluidStack fluid = tank.getFluid();
+            CompoundTag encoded = new CompoundTag();
+            tank.writeToNBT(registries, encoded);
+            boolean valid = fluid.isEmpty() || (fuel ? DockFluidFilters.isFuel(fluid) : DockFluidFilters.isLubricant(fluid));
+            if (valid && fluid.getAmount() <= tank.getCapacity() && encoded.equals(compound)) return;
+        } catch (RuntimeException malformedData) {
+            // Preserve the original even if a codec cannot read a missing mod/component.
         }
+        tank.setFluid(FluidStack.EMPTY);
+        quarantine(source, raw);
+    }
 
-        int clampedAmount = Math.min(fluid.getAmount(), tank.getCapacity());
-        if (clampedAmount != fluid.getAmount()) {
-            tank.setFluid(fluid.copyWithAmount(clampedAmount));
-            setChanged();
+    private boolean canLoadUpgradesWithoutLoss(HolderLookup.Provider registries, Tag raw) {
+        if (!(raw instanceof CompoundTag compound)) return false;
+        if (!compound.getAllKeys().stream().allMatch(key -> key.equals("Size") || key.equals("Items"))) return false;
+        if (compound.contains("Size") && (!compound.contains("Size", Tag.TAG_INT)
+                || compound.getInt("Size") < 0 || compound.getInt("Size") > GARAGE_UPGRADE_SLOTS)) return false;
+        if (!compound.contains("Items")) return true;
+        if (!(compound.get("Items") instanceof ListTag items)
+                || (!items.isEmpty() && items.getElementType() != Tag.TAG_COMPOUND)) return false;
+        boolean[] seen = new boolean[GARAGE_UPGRADE_SLOTS];
+        try {
+            for (Tag element : items) {
+                CompoundTag itemTag = (CompoundTag) element;
+                if (!itemTag.contains("Slot", Tag.TAG_INT)) return false;
+                int slot = itemTag.getInt("Slot");
+                if (slot < 0 || slot >= GARAGE_UPGRADE_SLOTS || seen[slot]) return false;
+                seen[slot] = true;
+                Optional<ItemStack> parsed = ItemStack.parse(registries, itemTag);
+                if (parsed.isEmpty() || parsed.get().isEmpty()
+                        || parsed.get().getCount() > GARAGE_UPGRADE_SLOT_LIMIT) return false;
+                CompoundTag canonical = new CompoundTag();
+                canonical.putInt("Slot", slot);
+                if (!parsed.get().save(registries, canonical).equals(itemTag)) return false;
+            }
+        } catch (RuntimeException malformedData) {
+            return false;
         }
+        return true;
     }
 
     private void loadGarageUpgradeInventory(HolderLookup.Provider registries, CompoundTag upgradesTag) {
@@ -287,25 +342,9 @@ public final class DockingControllerBlockEntity extends BlockEntity {
         safeTag.putInt("Size", GARAGE_UPGRADE_SLOTS);
         garageUpgradeInventory.deserializeNBT(registries, safeTag);
         normalizeLoadedGarageUpgradeSlots();
-        recoverHiddenGarageUpgradeStacks(registries, upgradesTag);
 
         if (serializedSlots != GARAGE_UPGRADE_SLOTS) {
             setChanged();
-        }
-    }
-
-    private void recoverHiddenGarageUpgradeStacks(HolderLookup.Provider registries, CompoundTag upgradesTag) {
-        ListTag items = upgradesTag.getList("Items", Tag.TAG_COMPOUND);
-        for (int index = 0; index < items.size(); index++) {
-            CompoundTag itemTag = items.getCompound(index);
-            if (itemTag.getInt("Slot") < GARAGE_UPGRADE_SLOTS) {
-                continue;
-            }
-
-            Optional<ItemStack> parsed = ItemStack.parse(registries, itemTag);
-            if (parsed.isPresent()) {
-                moveLoadedGarageUpgradeToEmptyValidSlot(parsed.get());
-            }
         }
     }
 
@@ -314,12 +353,6 @@ public final class DockingControllerBlockEntity extends BlockEntity {
             ItemStack stack = garageUpgradeInventory.getStackInSlot(slot);
             if (stack.isEmpty()) {
                 continue;
-            }
-
-            ItemStack limitedStack = limitLoadedGarageUpgradeStack(stack);
-            if (limitedStack != stack) {
-                garageUpgradeInventory.setStackInSlot(slot, limitedStack);
-                stack = limitedStack;
             }
 
             if (isValidGarageUpgrade(slot, stack)) {
@@ -335,7 +368,7 @@ public final class DockingControllerBlockEntity extends BlockEntity {
     }
 
     private boolean moveLoadedGarageUpgradeToEmptyValidSlot(int sourceSlot, ItemStack stack) {
-        ItemStack limitedStack = limitLoadedGarageUpgradeStack(stack);
+        ItemStack limitedStack = stack;
         for (int targetSlot = 0; targetSlot < garageUpgradeInventory.getSlots(); targetSlot++) {
             if (targetSlot == sourceSlot
                     || !garageUpgradeInventory.getStackInSlot(targetSlot).isEmpty()
@@ -350,29 +383,11 @@ public final class DockingControllerBlockEntity extends BlockEntity {
         return false;
     }
 
-    private boolean moveLoadedGarageUpgradeToEmptyValidSlot(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-
-        ItemStack limitedStack = limitLoadedGarageUpgradeStack(stack);
-        for (int targetSlot = 0; targetSlot < garageUpgradeInventory.getSlots(); targetSlot++) {
-            if (!garageUpgradeInventory.getStackInSlot(targetSlot).isEmpty()
-                    || !isValidGarageUpgrade(targetSlot, limitedStack)) {
-                continue;
-            }
-
-            garageUpgradeInventory.setStackInSlot(targetSlot, limitedStack.copy());
-            return true;
-        }
-        return false;
-    }
-
     private boolean swapLoadedGarageUpgradeWithInvalidSlot(int sourceSlot, ItemStack stack) {
-        ItemStack limitedStack = limitLoadedGarageUpgradeStack(stack);
+        ItemStack limitedStack = stack;
         for (int targetSlot = 0; targetSlot < garageUpgradeInventory.getSlots(); targetSlot++) {
             ItemStack targetStack = garageUpgradeInventory.getStackInSlot(targetSlot);
-            ItemStack limitedTargetStack = limitLoadedGarageUpgradeStack(targetStack);
+            ItemStack limitedTargetStack = targetStack;
             if (targetSlot == sourceSlot
                     || targetStack.isEmpty()
                     || isValidGarageUpgrade(targetSlot, targetStack)
@@ -388,19 +403,12 @@ public final class DockingControllerBlockEntity extends BlockEntity {
         return false;
     }
 
-    private static ItemStack limitLoadedGarageUpgradeStack(ItemStack stack) {
-        if (stack.isEmpty() || stack.getCount() <= GARAGE_UPGRADE_SLOT_LIMIT) {
-            return stack;
-        }
-
-        ItemStack limitedStack = stack.copy();
-        limitedStack.setCount(GARAGE_UPGRADE_SLOT_LIMIT);
-        return limitedStack;
-    }
-
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        if (!recoveryQuarantine.isEmpty()) {
+            tag.put(RECOVERY_TAG, recoveryQuarantine.copy());
+        }
 
         if (lockedTunnelDigger != null) {
             tag.putUUID(LOCKED_TUNNEL_DIGGER_TAG, lockedTunnelDigger);

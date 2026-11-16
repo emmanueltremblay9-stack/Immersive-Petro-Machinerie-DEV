@@ -30,10 +30,18 @@ Reproduce with a real Java 21 JDK: ./gradlew compileJava processResources test b
 
 ## Review gate: recovered save normalization
 
-The owner-source normalization in DockingControllerBlockEntity can discard invalid/over-capacity fluid and upgrade stacks that cannot be recovered into the five supported slots; count normalization can truncate excess items. Existing clamp tests do not prove conservation. This draft is NOT safe to deploy against valuable existing saves until migration/quarantine preserves those contents and appropriate tests pass. This behavior was recovered, not introduced by the HUD foundation.
+The recovered normalization risk is now corrected for load/save and formation: unrepresentable, malformed, invalid or excessive tank/inventory data is preserved verbatim under RecoveryQuarantine. The affected active container is empty; no partial activation or replay duplicates the archived contents. Existing quarantine survives repeated loads, including the same controller instance, and blocks formed conversion. Obsolete truncation/recovery helpers were removed.
+
+Quarantine is intentionally opaque and non-operational: no automatic restoration, no invented conversion, and no new GUI/command to manufacture items. Qualified recovery procedures and physical controller destruction/drop handling are NOT covered by this correction. Preserve backups and do not treat this draft as a stable save-migration release.
 
 Final branch build: compileJava/processResources/test/build passed (14s); hudContractTest 28 checks passed. Candidate JAR SHA-256: 9dbc4626bb6b29c88ddb076c678cf84ea14d1e0bff325272da99137ab1f7f705. Isolated migration JAR had a different archive hash; no deterministic byte-for-byte build claim is made. GameTest execution is tracked separately and must not be inferred from this build.
 
 ## Fresh runtime result for this recovered candidate
 
 runGameTestServer completed successfully in 1m5s after downloading required official Minecraft assets through the existing cloud proxy. All 29 required GameTests passed. This covers the existing Garage/profile/safety harness, not Cart traction or the new HUD in-game. No historical count was reused. No interactive client or two-client qualification performed. The recovered save-normalization risk above remains despite these tests.
+
+## NBT conservation correction — latest qualification
+
+Independent review found no loss/duplication in the load-save/formation paths. Final compileJava/processResources/test/build/runGameTestServer completed successfully in 27s after removing obsolete destructive helpers. 28 HUD contract checks and all 31 required GameTests passed. Round-trip tests cover whole overcapacity tanks, oversized/negative inventory declarations, excess stack counts, duplicate slots, unresolved item IDs, unknown fields, malformed tag types, repeated same-instance loads, source immutability and no automatic reactivation. Original source snapshot remains untouched.
+
+Final corrected JAR SHA-256: 6fb3caa8ddc11a2cac61793c05c41cddc439e7ce6360b7d397bedb38804bc237. Expected test diagnostic: unresolved-item fixture logs an invalid-item message. Offline Yggdrasil/update-check failures did not prevent GameTests. Cart traction and interactive HUD/client qualification remain NOT_RUN.

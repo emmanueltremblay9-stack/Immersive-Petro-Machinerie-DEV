@@ -314,114 +314,39 @@ public final class IPMGarageSafetyGameTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
-    public static void garage_upgrade_inventory_clamps_oversized_nbt_size(GameTestHelper helper) {
+    public static void garage_upgrade_inventory_quarantines_oversized_nbt_size(GameTestHelper helper) {
         DockingControllerBlockEntity controller = placeController(helper);
         HolderLookup.Provider registries = helper.getLevel().registryAccess();
-        controller.getGarageUpgradeInventory().setStackInSlot(0, new ItemStack(IPMBlocks.CORE_SAMPLING_UPGRADE.get()));
-
         CompoundTag saved = controller.saveWithFullMetadata(registries);
         CompoundTag upgrades = saved.getCompound("GarageUpgrades");
         upgrades.putInt("Size", DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS + 1);
         ListTag items = upgrades.getList("Items", Tag.TAG_COMPOUND);
-        CompoundTag hiddenBoreHead = new CompoundTag();
-        hiddenBoreHead.putInt("Slot", DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS);
-        items.add(new ItemStack(IPMBlocks.BORE_HEAD_MK1.get(), 4).save(registries, hiddenBoreHead));
-
-        DockingControllerBlockEntity loaded = new DockingControllerBlockEntity(
-                helper.absolutePos(CONTROLLER_POS),
-                IPMBlocks.DOCKING_CONTROLLER.get()
-                        .defaultBlockState()
-                        .setValue(DockingControllerBlock.FACING, Direction.NORTH)
-        );
-        loaded.loadWithComponents(saved, registries);
-
-        helper.assertValueEqual(
-                DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS,
-                loaded.getGarageUpgradeInventory().getSlots(),
-                "oversized GarageUpgrades NBT should clamp to the real Garage upgrade slot count"
-        );
-        helper.assertTrue(
-                loaded.getGarageUpgradeInventory().getStackInSlot(0).is(IPMBlocks.BORE_HEAD_MK1.get()),
-                "valid hidden bore head should be recovered into the bore head slot"
-        );
-        helper.assertValueEqual(
-                1,
-                loaded.getGarageUpgradeInventory().getStackInSlot(0).getCount(),
-                "recovered hidden bore head stack should clamp to the garage slot limit"
-        );
-        helper.assertTrue(
-                loaded.getGarageUpgradeInventory().getStackInSlot(1).is(IPMBlocks.CORE_SAMPLING_UPGRADE.get()),
-                "legacy core sampling upgrade should still migrate into the core sampling slot"
-        );
-        helper.assertValueEqual(
-                2,
-                loaded.getGarageUpgradeItemCountForDiagnostics(),
-                "oversized hidden slots should not remain counted after load"
-        );
+        CompoundTag hidden = new CompoundTag();
+        hidden.putInt("Slot", DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS);
+        items.add(new ItemStack(IPMBlocks.BORE_HEAD_MK1.get(), 4).save(registries, hidden));
+        upgrades.put("Items", items);
+        assertQuarantinedRoundTrip(helper, saved, "GarageUpgrades");
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
-    public static void garage_upgrade_inventory_clamps_loaded_stack_counts(GameTestHelper helper) {
+    public static void garage_upgrade_inventory_preserves_excess_counts(GameTestHelper helper) {
         DockingControllerBlockEntity controller = placeController(helper);
-        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+        var registries = helper.getLevel().registryAccess();
         controller.getGarageUpgradeInventory().setStackInSlot(0, new ItemStack(IPMBlocks.BORE_HEAD_MK2.get(), 5));
         controller.getGarageUpgradeInventory().setStackInSlot(1, new ItemStack(IPMBlocks.CORE_SAMPLING_UPGRADE.get(), 3));
-
-        CompoundTag saved = controller.saveWithFullMetadata(registries);
-        DockingControllerBlockEntity loaded = new DockingControllerBlockEntity(
-                helper.absolutePos(CONTROLLER_POS),
-                IPMBlocks.DOCKING_CONTROLLER.get()
-                        .defaultBlockState()
-                        .setValue(DockingControllerBlock.FACING, Direction.NORTH)
-        );
-        loaded.loadWithComponents(saved, registries);
-
-        helper.assertValueEqual(
-                1,
-                loaded.getGarageUpgradeInventory().getStackInSlot(0).getCount(),
-                "loaded bore head stack should clamp to the garage slot limit"
-        );
-        helper.assertValueEqual(
-                1,
-                loaded.getGarageUpgradeInventory().getStackInSlot(1).getCount(),
-                "loaded core sampling upgrade stack should clamp to the garage slot limit"
-        );
-        helper.assertValueEqual(
-                IndustrialDiggerMiningProfile.MK2,
-                loaded.getInstalledMiningProfileForDiagnostics().orElse(null),
-                "clamped MK2 bore head should still select MK2 mining profile"
-        );
+        assertQuarantinedRoundTrip(helper, controller.saveWithFullMetadata(registries), "GarageUpgrades");
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
-    public static void garage_upgrade_inventory_ignores_negative_nbt_size(GameTestHelper helper) {
-        DockingControllerBlockEntity controller = placeController(helper);
-        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+    public static void garage_upgrade_inventory_preserves_negative_nbt_size(GameTestHelper helper) {
+        var controller = placeController(helper);
+        var registries = helper.getLevel().registryAccess();
         controller.getGarageUpgradeInventory().setStackInSlot(0, new ItemStack(IPMBlocks.BORE_HEAD_MK2.get()));
-
-        CompoundTag saved = controller.saveWithFullMetadata(registries);
+        var saved = controller.saveWithFullMetadata(registries);
         saved.getCompound("GarageUpgrades").putInt("Size", -1);
-
-        DockingControllerBlockEntity loaded = new DockingControllerBlockEntity(
-                helper.absolutePos(CONTROLLER_POS),
-                IPMBlocks.DOCKING_CONTROLLER.get()
-                        .defaultBlockState()
-                        .setValue(DockingControllerBlock.FACING, Direction.NORTH)
-        );
-        loaded.loadWithComponents(saved, registries);
-
-        helper.assertValueEqual(
-                DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS,
-                loaded.getGarageUpgradeInventory().getSlots(),
-                "negative GarageUpgrades NBT size should not resize the Garage upgrade inventory"
-        );
-        helper.assertValueEqual(
-                IndustrialDiggerMiningProfile.MK2,
-                loaded.getInstalledMiningProfileForDiagnostics().orElse(null),
-                "visible bore head should still load when serialized NBT size is invalid"
-        );
+        assertQuarantinedRoundTrip(helper, saved, "GarageUpgrades");
         helper.succeed();
     }
 
@@ -833,6 +758,8 @@ public final class IPMGarageSafetyGameTests {
         helper.assertValueEqual(0, loaded.getLubricantAmountForDiagnostics(), "invalid loaded lubricant should be cleared");
         helper.assertValueEqual("empty", loaded.getFuelFluidId(), "invalid loaded fuel id should reset to empty");
         helper.assertValueEqual("empty", loaded.getLubricantFluidId(), "invalid loaded lubricant id should reset to empty");
+        assertQuarantinedRoundTrip(helper, saved, "FuelTank");
+        assertQuarantinedRoundTrip(helper, saved, "LubricantTank");
         helper.succeed();
     }
 
@@ -863,17 +790,62 @@ public final class IPMGarageSafetyGameTests {
 
         DockingControllerBlockEntity loaded = loadControllerFromTag(helper, saved, registries);
 
-        helper.assertValueEqual(
-                loaded.getFuelCapacity(),
-                loaded.getFuelAmountForDiagnostics(),
-                "loaded fuel should clamp to tank capacity"
-        );
-        helper.assertValueEqual(
-                loaded.getLubricantCapacity(),
-                loaded.getLubricantAmountForDiagnostics(),
-                "loaded lubricant should clamp to tank capacity"
-        );
+        helper.assertValueEqual(0, loaded.getFuelAmount(), "overcapacity fuel is quarantined, not clamped");
+        helper.assertValueEqual(0, loaded.getLubricantAmount(), "overcapacity lubricant is quarantined, not clamped");
+        assertQuarantinedRoundTrip(helper, saved, "FuelTank");
+        assertQuarantinedRoundTrip(helper, saved, "LubricantTank");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void recovery_preserves_unknown_and_malformed_tags(GameTestHelper helper) {
+        var controller = placeController(helper);
+        var registries = helper.getLevel().registryAccess();
+        var saved = controller.saveWithFullMetadata(registries);
+        saved.putString("FuelTank", "opaque-unknown-tank-schema");
+        saved.getCompound("GarageUpgrades").putString("FutureField", "must survive");
+        assertQuarantinedRoundTrip(helper, saved, "FuelTank");
+        assertQuarantinedRoundTrip(helper, saved, "GarageUpgrades");
+        saved.putString("RecoveryQuarantine", "future-recovery-schema");
+        assertQuarantinedRoundTrip(helper, saved, "RecoveryQuarantine");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void recovery_preserves_duplicate_and_unknown_item_entries(GameTestHelper helper) {
+        var controller = placeController(helper);
+        var registries = helper.getLevel().registryAccess();
+        controller.getGarageUpgradeInventory().setStackInSlot(0, new ItemStack(IPMBlocks.BORE_HEAD_MK1.get()));
+        var saved = controller.saveWithFullMetadata(registries);
+        var items = saved.getCompound("GarageUpgrades").getList("Items", Tag.TAG_COMPOUND);
+        items.add(items.getCompound(0).copy());
+        assertQuarantinedRoundTrip(helper, saved, "GarageUpgrades");
+        items.remove(1);
+        items.getCompound(0).putString("id", "missing_test_mod:unresolved_item");
+        assertQuarantinedRoundTrip(helper, saved, "GarageUpgrades");
+        helper.succeed();
+    }
+
+    private static void assertQuarantinedRoundTrip(GameTestHelper helper, CompoundTag source, String key) {
+        var registries = helper.getLevel().registryAccess();
+        CompoundTag original = source.copy();
+        var loaded = loadControllerFromTag(helper, source, registries);
+        var firstSave = loaded.saveWithFullMetadata(registries);
+        ListTag archive = firstSave.getList("RecoveryQuarantine", Tag.TAG_COMPOUND);
+        boolean found = false;
+        for (Tag element : archive) {
+            CompoundTag entry = (CompoundTag) element;
+            if (key.equals(entry.getString("Source")) && source.get(key).equals(entry.get("Raw"))) found = true;
+        }
+        helper.assertTrue(found, "raw source must survive quarantine without truncation: " + key);
+        helper.assertTrue(source.equals(original), "load must not mutate supplied source NBT");
+        helper.assertTrue(loaded.hasProtectedStateForFormation(), "quarantine must prevent destructive formation");
+        if (key.equals("GarageUpgrades")) helper.assertValueEqual(0, loaded.getGarageUpgradeItemCount(), "quarantine must not duplicate active upgrades");
+        if (key.equals("FuelTank")) helper.assertValueEqual(0, loaded.getFuelAmount(), "quarantine must not duplicate active fuel");
+        if (key.equals("LubricantTank")) helper.assertValueEqual(0, loaded.getLubricantAmount(), "quarantine must not duplicate active lubricant");
+        loaded.loadWithComponents(firstSave, registries);
+        CompoundTag secondSave = loaded.saveWithFullMetadata(registries);
+        helper.assertTrue(archive.equals(secondSave.get("RecoveryQuarantine")), "repeated load/save must not replay or grow quarantine");
     }
 
     private static DockingControllerBlockEntity placeController(GameTestHelper helper) {
