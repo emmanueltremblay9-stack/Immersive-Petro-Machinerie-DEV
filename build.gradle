@@ -43,7 +43,10 @@ repositories {
 }
 
 neoForge {
-    version = neoforge_version
+    enable {
+        version = neoforge_version
+        disableRecompilation = true
+    }
 
     runs {
         configureEach {
@@ -85,6 +88,27 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 21
 }
 
+tasks.named("jar", Jar).configure {
+    from("LICENSE")
+    from("COPYING")
+    from("NOTICE")
+    from("CREDITS")
+}
+
 processResources {
     duplicatesStrategy = DuplicatesStrategy.FAIL
+}
+
+// Dependency-free presentation contract. This does not replace runtime/GameTests.
+tasks.register("hudContractTest", JavaExec) {
+    dependsOn tasks.named("testClasses")
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "com.emman.immersivepetromachinery.hud.DiggerHudContractTest"
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.named("check") {
+    dependsOn tasks.named("hudContractTest")
 }

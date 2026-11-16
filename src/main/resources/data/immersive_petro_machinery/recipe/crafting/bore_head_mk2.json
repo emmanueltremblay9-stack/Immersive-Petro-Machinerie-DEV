@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": {
+      "item": "immersiveengineering:component_steel"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    },
+    "m": {
+      "item": "immersive_petro_machinery:bore_head_mk1"
+    },
+    "p": {
+      "tag": "c:plates/steel"
+    }
+  },
+  "pattern": [
+    "dcd",
+    "cmc",
+    "pdp"
+  ],
+  "result": {
+    "count": 1,
+    "id": "immersive_petro_machinery:bore_head_mk2"
+  }
+}

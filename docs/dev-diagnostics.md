@@ -24,7 +24,8 @@ The harness validates:
 
 - normal-mode formed shell creation is disabled by default;
 - protected controller state blocks the experimental formed-shell branch;
-- Survey Console containment does not create item outputs;
+- the retained legacy Survey Console registry shell is inert and hidden from
+  the creative tab;
 - Garage upgrade inventory persists through block entity NBT;
 - dock fuel and lubricant tanks persist through block entity NBT when the
   Immersive Petroleum fluids are available.

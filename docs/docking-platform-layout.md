@@ -142,7 +142,6 @@ Validated functional positions:
 | `(-2, 0, 0)` | Repair station | IPM Repair Bay |
 | `(-1, 0, 0)` | Service block | IE Light Engineering Block |
 | `(0, 0, 0)` | Controller | IPM Docking Controller |
-| `(0, 1, 0)` | Survey station | IPM Survey Console |
 | `(1, 0, 0)` | Control block | IE Redstone Engineering Block |
 | `(2, 0, 0)` | Upgrade station | IPM Upgrade Bay |
 | `(4, 0, 0)` | Lubricant tank interface | IPM Lubricant Port |
@@ -154,8 +153,8 @@ Additional rear wall service details:
   Engineering Blocks;
 - outer rear border pillars at `(-5, y, 0)` and `(5, y, 0)` remain straight IE
   steel scaffolding from `y = 0..7`;
-- center rear service window above the controller remains open except for the
-  Survey Console and pipe header;
+- center rear service window above the controller remains open below the pipe
+  header;
 - rear pipe header: `x = -4..4`, `y = 4`, `z = 0`;
 - pump/header nodes at `(-4, 4, 0)` and `(4, 4, 0)`.
 
@@ -198,22 +197,13 @@ Lubricant service arm:
 These arms are visual/validated garage service lines only. They do not transfer
 fluid into the Tunnel Digger in the current phase.
 
-## Survey Console Containment
+## Legacy Survey Console Compatibility
 
-The Survey Console remains part of the physical rear service wall, but final
-scan output is contained during the Phase 7.8A0 safety gate. Interacting with a
-valid linked Survey Console reports that the Core Sampling Scan flow is under
-review and will require the Garage-installed IPM upgrade flow later.
-
-In this contained state, the Survey Console does not:
-
-- generate IE Core Sample items;
-- generate Immersive Petroleum survey result items;
-- drain diesel;
-- run final scan targeting rules.
-
-The existing survey service code remains available for later implementation
-planning, but it is not called by the active Survey Console interaction.
+The standalone Survey Console is removed from the active Garage design. Its
+registry ID remains as a hidden inert compatibility shell so existing worlds can
+resolve old block states, but it is not required by validation, exposed in the
+creative tab, craftable, documented as a functional block, or connected to a
+survey result path. Core Sampling remains future Industrial Digger scope.
 
 ## Side Supports And Top Armature
 
@@ -260,7 +250,6 @@ The validator uses these verified Immersive Engineering block ids:
 ## IPM Custom Blocks Used By Validation
 
 - Docking Controller: `(0, 0, 0)`
-- Survey Console: `(0, 1, 0)`
 - Fuel Port: `(-4, 0, 0)`
 - Lubricant Port: `(4, 0, 0)`
 - Repair Bay: `(-2, 0, 0)`
@@ -271,7 +260,6 @@ The validator uses these verified Immersive Engineering block ids:
 ## Required Symbols
 
 - `DC`: IPM Docking Controller
-- `SC`: IPM Survey Console
 - `RB`: IPM Repair Bay
 - `UB`: IPM Upgrade Bay
 - `OP`: IPM Output Port

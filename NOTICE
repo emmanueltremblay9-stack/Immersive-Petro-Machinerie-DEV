@@ -1,0 +1,39 @@
+Immersive Petro-Machinery Notice
+
+Immersive Petro-Machinery is licensed under GPL-3.0-only. The full license text
+is provided in `COPYING`; the project-specific license statement is provided in
+`LICENSE`.
+
+Current Immersive Machinery reuse status:
+
+- Immersive Machinery is used as a required runtime dependency.
+- Immersive Petro-Machinery references the Immersive Machinery Tunnel Digger by
+  registry id for detection and garage integration.
+- No Immersive Machinery source code or assets are copied into this repository
+  as of this notice.
+
+Immersive Machinery material may be copied or adapted only if every imported
+item is recorded in `docs/im-reuse-inventory.md`, keeps upstream notices where
+present, and has attribution in this file and `CREDITS`. Modified imported
+material must be marked as modified with the relevant date or commit context.
+
+This notice does not authorize copying code or assets from Immersive Petroleum,
+Immersive Engineering, Immersive Aircraft, Minecraft, NeoForge, or any other
+third-party project. Runtime dependency declarations, registry id references,
+and player-facing compatibility descriptions are not copied source or assets.
+
+Private CurseForge message text is not redistributed in this repository. The
+public-safe permission summary for Immersive Machinery is tracked in
+`docs/external-references.md`.
+
+Third-party runtime dependencies currently declared by the project include:
+
+- Minecraft
+- NeoForge
+- Immersive Engineering
+- Immersive Petroleum
+- Immersive Aircraft
+- Immersive Machinery
+- DualCodecs
+
+Each dependency remains governed by its own license and distribution terms.

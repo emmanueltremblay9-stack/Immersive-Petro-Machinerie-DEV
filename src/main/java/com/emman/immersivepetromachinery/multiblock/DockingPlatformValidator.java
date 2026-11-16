@@ -200,8 +200,6 @@ public final class DockingPlatformValidator {
         add(entries, 2, 0, 0, "UB");
         add(entries, 4, 0, 0, "LP");
         add(entries, 5, 0, -1, "OP");
-        add(entries, 0, 1, 0, "SC");
-
         add(entries, -1, 0, 0, "LE");
         add(entries, 1, 0, 0, "RE");
 
@@ -294,8 +292,7 @@ public final class DockingPlatformValidator {
 
     private static boolean isFunctionalServiceBlock(int x, int y, int z) {
         return (y == 0 && z == 0 && (x == -4 || x == -2 || x == 0 || x == 2 || x == 4))
-                || (x == 5 && y == 0 && z == -1)
-                || (x == 0 && y == 1 && z == 0);
+                || (x == 5 && y == 0 && z == -1);
     }
 
     private static boolean isRearTankBody(int x, int y, int z) {
@@ -353,7 +350,6 @@ public final class DockingPlatformValidator {
             case "OP" -> ipm(symbol, "output_port", IPMBlocks.OUTPUT_PORT);
             case "RB" -> ipm(symbol, "repair_bay", IPMBlocks.REPAIR_BAY);
             case "UB" -> ipm(symbol, "upgrade_bay", IPMBlocks.UPGRADE_BAY);
-            case "SC" -> ipm(symbol, "survey_console", IPMBlocks.SURVEY_CONSOLE);
             case "LR" -> ipm(symbol, "locking_rail", IPMBlocks.LOCKING_RAIL);
             case "SS" -> registry(symbol, "immersiveengineering", "steel_scaffolding_standard");
             case "HE" -> registry(symbol, "immersiveengineering", "heavy_engineering");

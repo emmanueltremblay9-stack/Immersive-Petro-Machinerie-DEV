@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "immersive_petro_machinery:core_sampling_upgrade"
+    "immersive_petro_machinery:core_sampling_upgrade",
+    "#immersive_petro_machinery:bore_heads"
   ]
 }

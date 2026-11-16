@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "immersive_petro_machinery:survey_console"
+          "name": "immersive_petro_machinery:docking_gantry"
         }
       ],
       "rolls": 1.0,

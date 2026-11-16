@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 
 public final class DockingGantryFormedState implements IMultiblockState {
     private static final String DIAGNOSTICS_TAG = "Diagnostics";
@@ -76,24 +77,51 @@ public final class DockingGantryFormedState implements IMultiblockState {
     @Override
     public void readSaveNBT(CompoundTag tag, HolderLookup.Provider registries) {
         if (!tag.contains(DIAGNOSTICS_TAG)) {
-            masterPosition = null;
-            controllerRelativeClickPosition = null;
+            clearDiagnostics();
             return;
         }
 
         CompoundTag diagnostics = tag.getCompound(DIAGNOSTICS_TAG);
+        if (!hasCompleteDiagnostics(diagnostics)) {
+            clearDiagnostics();
+            return;
+        }
+
+        Direction savedOrientation = Direction.byName(diagnostics.getString(ORIENTATION_TAG));
+        if (savedOrientation == null || savedOrientation.getAxis().isVertical()) {
+            clearDiagnostics();
+            return;
+        }
+
         masterPosition = new BlockPos(
                 diagnostics.getInt(MASTER_X_TAG),
                 diagnostics.getInt(MASTER_Y_TAG),
                 diagnostics.getInt(MASTER_Z_TAG)
         );
-        Direction savedOrientation = Direction.byName(diagnostics.getString(ORIENTATION_TAG));
-        orientation = savedOrientation == null ? Direction.NORTH : savedOrientation;
+        orientation = savedOrientation;
         formedValid = diagnostics.getBoolean(FORMED_VALID_TAG);
         controllerRelativeClickPosition = new BlockPos(
                 diagnostics.getInt(CLICK_X_TAG),
                 diagnostics.getInt(CLICK_Y_TAG),
                 diagnostics.getInt(CLICK_Z_TAG)
         );
+    }
+
+    private static boolean hasCompleteDiagnostics(CompoundTag diagnostics) {
+        return diagnostics.contains(MASTER_X_TAG, Tag.TAG_INT)
+                && diagnostics.contains(MASTER_Y_TAG, Tag.TAG_INT)
+                && diagnostics.contains(MASTER_Z_TAG, Tag.TAG_INT)
+                && diagnostics.contains(ORIENTATION_TAG, Tag.TAG_STRING)
+                && diagnostics.contains(FORMED_VALID_TAG, Tag.TAG_BYTE)
+                && diagnostics.contains(CLICK_X_TAG, Tag.TAG_INT)
+                && diagnostics.contains(CLICK_Y_TAG, Tag.TAG_INT)
+                && diagnostics.contains(CLICK_Z_TAG, Tag.TAG_INT);
+    }
+
+    private void clearDiagnostics() {
+        masterPosition = null;
+        orientation = Direction.NORTH;
+        formedValid = false;
+        controllerRelativeClickPosition = null;
     }
 }
