@@ -45,3 +45,15 @@ runGameTestServer completed successfully in 1m5s after downloading required offi
 Independent review found no loss/duplication in the load-save/formation paths. Final compileJava/processResources/test/build/runGameTestServer completed successfully in 27s after removing obsolete destructive helpers. 28 HUD contract checks and all 31 required GameTests passed. Round-trip tests cover whole overcapacity tanks, oversized/negative inventory declarations, excess stack counts, duplicate slots, unresolved item IDs, unknown fields, malformed tag types, repeated same-instance loads, source immutability and no automatic reactivation. Original source snapshot remains untouched.
 
 Final corrected JAR SHA-256: 6fb3caa8ddc11a2cac61793c05c41cddc439e7ce6360b7d397bedb38804bc237. Expected test diagnostic: unresolved-item fixture logs an invalid-item message. Offline Yggdrasil/update-check failures did not prevent GameTests. Cart traction and interactive HUD/client qualification remain NOT_RUN.
+
+## Physical recovery protection — latest qualification
+
+A controller carrying RecoveryQuarantine now cancels the normal server BreakEvent with an explanatory message, and is removed only from an explosion's affected-block list. Ordinary controllers and unrelated explosion targets remain unchanged. The archive is never converted into loot or automatically restored.
+
+Final compileJava/processResources/test/build/runGameTestServer PASS in 29s: 28 HUD checks and all 33 required GameTests passed. The break test posts the registered server event; it is not a full interactive harvest. The explosion test posts Detonate and executes the actual destruction phase, proving the controller and its archive survive while an ordinary neighboring block is destroyed. Independent review found no blocker.
+
+Protection does not cover administrator commands, direct mod replacements, third-party handlers undoing the cancellation/list change, or destruction bypassing these hooks. No universal world-protection guarantee is made.
+
+Latest JAR SHA-256: e494b5cdbb99b54d57982e77811328b474c258e1a449158c8f74c2a116a39837.
+
+Client attempt: runClient started but failed at NeoForge early display initialization (ERROR DISPLAY). The execution environment exposes neither DISPLAY nor an X11 socket. No client/game window or interactive screenshot was obtained. No Prism instance, display server, access setting or user PC was modified. This remains a client qualification blocker, not a server/GameTest failure.

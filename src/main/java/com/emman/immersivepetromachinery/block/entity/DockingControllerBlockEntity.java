@@ -157,6 +157,10 @@ public final class DockingControllerBlockEntity extends BlockEntity {
         return getInstalledMiningProfile();
     }
 
+    public boolean hasRecoveryQuarantine() {
+        return !recoveryQuarantine.isEmpty();
+    }
+
     public boolean hasProtectedFormedState() {
         return lockedTunnelDigger != null
                 || fuelTank.getFluidAmount() > 0

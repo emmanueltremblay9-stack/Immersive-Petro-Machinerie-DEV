@@ -826,6 +826,52 @@ public final class IPMGarageSafetyGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void recovery_blocks_break_without_protecting_empty_controller(GameTestHelper helper) {
+        var controller = placeController(helper);
+        var level = helper.getLevel();
+        var pos = helper.absolutePos(CONTROLLER_POS);
+        var player = net.neoforged.neoforge.common.util.FakePlayerFactory.getMinecraft(level);
+        var normal = new net.neoforged.neoforge.event.level.BlockEvent.BreakEvent(level, pos, level.getBlockState(pos), player);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(normal);
+        helper.assertFalse(normal.isCanceled(), "ordinary empty controller remains breakable");
+        var saved = controller.saveWithFullMetadata(level.registryAccess());
+        saved.putString("FuelTank", "unresolved-test-data");
+        controller.loadWithComponents(saved, level.registryAccess());
+        var protectedBreak = new net.neoforged.neoforge.event.level.BlockEvent.BreakEvent(level, pos, level.getBlockState(pos), player);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(protectedBreak);
+        helper.assertTrue(protectedBreak.isCanceled(), "quarantined controller break must be cancelled");
+        helper.assertTrue(controller.hasRecoveryQuarantine(), "break attempt must not consume recovery data");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void recovery_survives_explosion_destruction_phase(GameTestHelper helper) {
+        var controller = placeController(helper);
+        var level = helper.getLevel();
+        var pos = helper.absolutePos(CONTROLLER_POS);
+        var neighbor = pos.above();
+        level.setBlock(neighbor, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 3);
+        var saved = controller.saveWithFullMetadata(level.registryAccess());
+        saved.putString("FuelTank", "unresolved-explosion-data");
+        controller.loadWithComponents(saved, level.registryAccess());
+        var before = controller.saveWithFullMetadata(level.registryAccess()).get("RecoveryQuarantine").copy();
+        var explosion = new net.minecraft.world.level.Explosion(level, null,
+                pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1.0F, false,
+                net.minecraft.world.level.Explosion.BlockInteraction.DESTROY,
+                new java.util.ArrayList<>(java.util.List.of(pos, neighbor)));
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                new net.neoforged.neoforge.event.level.ExplosionEvent.Detonate(level, explosion, new java.util.ArrayList<>()));
+        helper.assertFalse(explosion.getToBlow().contains(pos), "protected controller removed from destruction list");
+        helper.assertTrue(explosion.getToBlow().contains(neighbor), "unrelated explosion targets preserved");
+        explosion.finalizeExplosion(false);
+        helper.assertTrue(level.getBlockEntity(pos) == controller, "controller must survive destruction phase");
+        helper.assertTrue(level.isEmptyBlock(neighbor), "ordinary neighbor must still be destroyed");
+        helper.assertTrue(before.equals(controller.saveWithFullMetadata(level.registryAccess()).get("RecoveryQuarantine")),
+                "explosion must not mutate recovery payload");
+        helper.succeed();
+    }
+
     private static void assertQuarantinedRoundTrip(GameTestHelper helper, CompoundTag source, String key) {
         var registries = helper.getLevel().registryAccess();
         CompoundTag original = source.copy();

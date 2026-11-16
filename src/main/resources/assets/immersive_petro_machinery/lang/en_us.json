@@ -65,5 +65,6 @@
   "screen.immersive_petro_machinery.placeholder.repair": "Repair",
   "screen.immersive_petro_machinery.placeholder.ie_survey": "IE Survey",
   "screen.immersive_petro_machinery.placeholder.ip_survey": "IP Survey",
-  "screen.immersive_petro_machinery.placeholder.display_only": "placeholder"
+  "screen.immersive_petro_machinery.placeholder.display_only": "placeholder",
+  "message.immersive_petro_machinery.recovery_protected": "This controller contains quarantined save data. Breaking is blocked to prevent loss. Keep a backup and resolve recovery before removal."
 }
