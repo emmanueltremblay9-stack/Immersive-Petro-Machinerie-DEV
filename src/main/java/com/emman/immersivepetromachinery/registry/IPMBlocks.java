@@ -2,7 +2,6 @@ package com.emman.immersivepetromachinery.registry;
 
 import com.emman.immersivepetromachinery.ImmersivePetroMachinery;
 import com.emman.immersivepetromachinery.block.DockingControllerBlock;
-import com.emman.immersivepetromachinery.block.SurveyConsoleBlock;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -28,11 +27,17 @@ public final class IPMBlocks {
     public static final DeferredBlock<Block> OUTPUT_PORT = registerPlatformBlock("output_port");
     public static final DeferredBlock<Block> REPAIR_BAY = registerPlatformBlock("repair_bay");
     public static final DeferredBlock<Block> UPGRADE_BAY = registerPlatformBlock("upgrade_bay");
-    public static final DeferredBlock<SurveyConsoleBlock> SURVEY_CONSOLE =
-            BLOCKS.registerBlock("survey_console", SurveyConsoleBlock::new, platformBlockProperties());
+    // Retained only as an inert registry shell so existing worlds can still resolve the legacy ID.
+    public static final DeferredBlock<Block> SURVEY_CONSOLE = registerPlatformBlock("survey_console");
     public static final DeferredBlock<Block> DOCKING_PIPE = registerPlatformBlock("docking_pipe");
 
     public static final DeferredItem<Item> CORE_SAMPLING_UPGRADE = ITEMS.register("core_sampling_upgrade",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> BORE_HEAD_MK1 = ITEMS.register("bore_head_mk1",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> BORE_HEAD_MK2 = ITEMS.register("bore_head_mk2",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> BORE_HEAD_MK3 = ITEMS.register("bore_head_mk3",
             () -> new Item(new Item.Properties().stacksTo(1)));
 
     public static final List<DeferredItem<BlockItem>> PLATFORM_BLOCK_ITEMS = List.of(

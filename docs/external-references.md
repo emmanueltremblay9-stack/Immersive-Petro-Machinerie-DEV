@@ -3,9 +3,9 @@
 This page tracks external links that are relevant to project coordination but
 are not themselves source-of-truth implementation instructions.
 
-## CurseForge Private Message 410061
+## Owner-supplied permission summary
 
-- Link: https://legacy.curseforge.com/private-messages/410061
+- Private source URL and message identifier intentionally omitted.
 - Added: 2026-06-17
 - Context: CurseForge private message reference supplied for Immersive
   Petro-Machinery project tracking.
@@ -41,11 +41,15 @@ summary:
 
 ### Implementation Gate
 
-- No root `LICENSE`, `COPYING`, `NOTICE`, or `CREDITS` file existed when this
-  summary was recorded, so do not treat full GPLv3 reuse as active until the
-  repository license and attribution/compliance files are added or updated.
+- Gate status as of 2026-06-17: active for Immersive Machinery only.
+- Root `LICENSE`, `COPYING`, `NOTICE`, and `CREDITS` files now declare
+  Immersive Petro-Machinery as GPL-3.0-only and provide the attribution and
+  notice structure required before Immersive Machinery GPLv3-compatible reuse.
+- Every copied or adapted Immersive Machinery item must be recorded in
+  `docs/im-reuse-inventory.md`, keep upstream notices where present, and be
+  attributed in `NOTICE` and `CREDITS`.
 - This permission applies to Immersive Machinery only. It does not grant rights
-  for Immersive Petroleum, Immersive Engineering, Immersive Aircraft, or other
-  third-party projects.
+  for Immersive Petroleum, Immersive Engineering, Immersive Aircraft, Minecraft,
+  NeoForge, or other third-party projects.
 - Do not copy private message text into this repository unless it is explicitly
   public or approved for redistribution.

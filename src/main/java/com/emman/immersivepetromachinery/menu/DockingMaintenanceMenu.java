@@ -1,8 +1,10 @@
 package com.emman.immersivepetromachinery.menu;
 
 import com.emman.immersivepetromachinery.block.entity.DockingControllerBlockEntity;
+import com.emman.immersivepetromachinery.mining.IndustrialDiggerMiningProfile;
 import com.emman.immersivepetromachinery.registry.IPMBlocks;
 import com.emman.immersivepetromachinery.registry.IPMMenus;
+import com.emman.immersivepetromachinery.registry.IPMTags;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +37,11 @@ public final class DockingMaintenanceMenu extends AbstractContainerMenu {
     private final DockingMaintenanceSnapshot snapshot;
 
     public DockingMaintenanceMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
-        this(containerId, playerInventory, createClientUpgradeInventory(), DockingMaintenanceSnapshot.read(data));
+        this(containerId, playerInventory, DockingMaintenanceSnapshot.read(data));
+    }
+
+    private DockingMaintenanceMenu(int containerId, Inventory playerInventory, DockingMaintenanceSnapshot snapshot) {
+        this(containerId, playerInventory, createClientUpgradeInventory(snapshot), snapshot);
     }
 
     public DockingMaintenanceMenu(
@@ -52,6 +58,18 @@ public final class DockingMaintenanceMenu extends AbstractContainerMenu {
 
     public DockingMaintenanceSnapshot snapshot() {
         return snapshot;
+    }
+
+    public String selectedMiningProfileText() {
+        if (slots.size() <= DockingControllerBlockEntity.BORE_HEAD_SLOT) {
+            return snapshot.miningProfileText();
+        }
+
+        return IndustrialDiggerMiningProfile.fromBoreHead(
+                        slots.get(DockingControllerBlockEntity.BORE_HEAD_SLOT).getItem()
+                )
+                .map(DockingMaintenanceMenu::formatMiningProfile)
+                .orElse("No bore head");
     }
 
     @Override
@@ -105,7 +123,18 @@ public final class DockingMaintenanceMenu extends AbstractContainerMenu {
     }
 
     private boolean isGarageUpgrade(ItemStack stack) {
-        return DockingControllerBlockEntity.isValidGarageUpgrade(DockingControllerBlockEntity.CORE_SAMPLING_SLOT, stack);
+        return stack.is(IPMTags.DIGGER_UPGRADES);
+    }
+
+    private static String formatMiningProfile(IndustrialDiggerMiningProfile profile) {
+        return profile.displayName()
+                + " "
+                + profile.footprintWidth()
+                + "x"
+                + profile.footprintWidth()
+                + " ("
+                + profile.blocksPerLayer()
+                + " blocks/layer)";
     }
 
     private void addGarageUpgradeSlots(ItemStackHandler garageUpgradeInventory) {
@@ -158,8 +187,12 @@ public final class DockingMaintenanceMenu extends AbstractContainerMenu {
         }
     }
 
-    private static ItemStackHandler createClientUpgradeInventory() {
-        return new ItemStackHandler(DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS) {
+    public static ItemStackHandler createClientUpgradeInventoryForDiagnostics(DockingMaintenanceSnapshot snapshot) {
+        return createClientUpgradeInventory(snapshot);
+    }
+
+    private static ItemStackHandler createClientUpgradeInventory(DockingMaintenanceSnapshot snapshot) {
+        ItemStackHandler handler = new ItemStackHandler(DockingControllerBlockEntity.GARAGE_UPGRADE_SLOTS) {
             @Override
             public boolean isItemValid(int slot, ItemStack stack) {
                 return DockingControllerBlockEntity.isValidGarageUpgrade(slot, stack);
@@ -170,6 +203,28 @@ public final class DockingMaintenanceMenu extends AbstractContainerMenu {
                 return 1;
             }
         };
+        boreHeadForSnapshot(snapshot).ifPresent(stack -> handler.setStackInSlot(
+                DockingControllerBlockEntity.BORE_HEAD_SLOT,
+                stack
+        ));
+        return handler;
+    }
+
+    private static java.util.Optional<ItemStack> boreHeadForSnapshot(DockingMaintenanceSnapshot snapshot) {
+        for (IndustrialDiggerMiningProfile profile : IndustrialDiggerMiningProfile.values()) {
+            if (!profile.displayName().equals(snapshot.miningProfileName())) {
+                continue;
+            }
+
+            ItemStack stack = switch (profile) {
+                case MK1 -> new ItemStack(IPMBlocks.BORE_HEAD_MK1.get());
+                case MK2 -> new ItemStack(IPMBlocks.BORE_HEAD_MK2.get());
+                case MK3 -> new ItemStack(IPMBlocks.BORE_HEAD_MK3.get());
+            };
+            return java.util.Optional.of(stack);
+        }
+
+        return java.util.Optional.empty();
     }
 
 }

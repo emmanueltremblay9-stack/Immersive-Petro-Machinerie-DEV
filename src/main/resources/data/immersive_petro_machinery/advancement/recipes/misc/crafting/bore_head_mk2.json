@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_seismic_survey": {
+    "has_bore_head_mk1": {
       "conditions": {
         "items": [
           {
-            "items": "immersivepetroleum:seismic_survey"
+            "items": "immersive_petro_machinery:bore_head_mk1"
           }
         ]
       },
@@ -13,20 +13,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "immersive_petro_machinery:crafting/survey_console"
+        "recipe": "immersive_petro_machinery:crafting/bore_head_mk2"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_seismic_survey",
+      "has_bore_head_mk1",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "immersive_petro_machinery:crafting/survey_console"
+      "immersive_petro_machinery:crafting/bore_head_mk2"
     ]
   }
 }

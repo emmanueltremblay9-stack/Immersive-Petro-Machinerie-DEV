@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bore_head_mk2": {
+      "conditions": {
+        "items": [
+          {
+            "items": "immersive_petro_machinery:bore_head_mk2"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "immersive_petro_machinery:crafting/bore_head_mk3"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_bore_head_mk2",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "immersive_petro_machinery:crafting/bore_head_mk3"
+    ]
+  }
+}

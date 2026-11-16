@@ -1,11 +1,11 @@
 modLoader = "javafml"
 loaderVersion = "[2,)"
-license = "All Rights Reserved"
-issueTrackerURL = "https://github.com/"
+license = "GPL-3.0-only"
+issueTrackerURL = "https://github.com/emmanueltremblay9-stack/Immersive-Petro-Machinerie-Mod-Add-On/issues"
 
 [[mods]]
 modId = "immersive_petro_machinery"
-version = "0.1.0"
+version = "0.1.24"
 displayName = "Immersive Petro-Machinery"
 authors = "Emman"
 description = '''

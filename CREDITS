@@ -1,0 +1,21 @@
+Immersive Petro-Machinery Credits
+
+Project author:
+
+- Emman / Emmanuel Tremblay
+
+Runtime integration targets and dependencies:
+
+- Immersive Machinery by Conczin: Tunnel Digger runtime dependency and registry
+  reference target. No source code or assets are currently copied from Immersive
+  Machinery into this repository.
+- Immersive Engineering: runtime dependency, manual integration API, block ids
+  used by the IPM garage validation contract, and survey API references.
+- Immersive Petroleum: runtime dependency, fuel/survey integration target, and
+  recipe ingredient references.
+- Immersive Aircraft: runtime dependency in the verified dependency stack.
+- NeoForge and Minecraft: mod loader and game runtime.
+- DualCodecs: runtime library dependency required by the dependency stack.
+
+If Immersive Machinery material is imported later, add the exact upstream file,
+asset, or concept lineage here and keep `docs/im-reuse-inventory.md` in sync.

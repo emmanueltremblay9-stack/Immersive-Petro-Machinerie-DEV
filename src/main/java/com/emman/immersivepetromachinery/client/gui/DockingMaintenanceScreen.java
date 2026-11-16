@@ -93,6 +93,7 @@ public final class DockingMaintenanceScreen extends AbstractContainerScreen<Dock
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         DockingMaintenanceSnapshot snapshot = menu.snapshot();
+        String miningProfileText = menu.selectedMiningProfileText();
         graphics.drawString(font, fit(title, imageWidth - 28), titleLabelX, titleLabelY, TITLE_COLOR, false);
         drawSectionTitle(graphics, Component.translatable("screen.immersive_petro_machinery.section.status"), 14, 39);
         drawStatusWidgetLabel(graphics, STATUS_WIDGETS[0], Component.literal("Garage"), snapshot.platformValid()
@@ -109,6 +110,12 @@ public final class DockingMaintenanceScreen extends AbstractContainerScreen<Dock
                 fit(Component.literal("Digger: " + snapshot.lockedTunnelDiggerText()), 221),
                 17,
                 80,
+                MUTED_TEXT_COLOR,
+                false);
+        graphics.drawString(font,
+                fit(Component.literal("Mining: " + miningProfileText), 221),
+                17,
+                91,
                 MUTED_TEXT_COLOR,
                 false);
 
@@ -188,6 +195,7 @@ public final class DockingMaintenanceScreen extends AbstractContainerScreen<Dock
 
     private void renderWidgetTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         DockingMaintenanceSnapshot snapshot = menu.snapshot();
+        String miningProfileText = menu.selectedMiningProfileText();
         if (isOver(8, 35, 240, 56, mouseX, mouseY)) {
             graphics.renderTooltip(font, List.of(
                     Component.translatable("screen.immersive_petro_machinery.section.status"),
@@ -201,6 +209,7 @@ public final class DockingMaintenanceScreen extends AbstractContainerScreen<Dock
                             : Component.translatable("screen.immersive_petro_machinery.status.unlocked")),
                     Component.translatable("screen.immersive_petro_machinery.maintenance.locked_digger").append(" ").append(snapshot.lockedTunnelDiggerText()),
                     Component.literal("Detection detail: " + snapshot.detectionSummary()),
+                    Component.literal("Mining profile: " + miningProfileText),
                     Component.literal("Garage scan flow pending review")
             ), Optional.empty(), mouseX, mouseY);
             return;
@@ -234,11 +243,25 @@ public final class DockingMaintenanceScreen extends AbstractContainerScreen<Dock
                     return;
                 }
 
-                graphics.renderTooltip(font, List.of(
-                        Component.literal("IPM Upgrade Slot"),
-                        Component.literal("Accepts #immersive_petro_machinery:digger_upgrades."),
-                        Component.literal("Stored only; upgrades have no effect yet.")
-                ), Optional.empty(), mouseX, mouseY);
+                if (module.slotX() == DockingMaintenanceMenu.BORE_SLOT_X) {
+                    graphics.renderTooltip(font, List.of(
+                            Component.literal("Bore Head Slot"),
+                            Component.literal("Selects MK1/MK2/MK3 mining profile."),
+                            Component.literal("Current: " + miningProfileText)
+                    ), Optional.empty(), mouseX, mouseY);
+                } else if (module.slotX() == DockingMaintenanceMenu.CORE_SLOT_X) {
+                    graphics.renderTooltip(font, List.of(
+                            Component.literal("Core Sampling Slot"),
+                            Component.literal("Accepts the Core Sampling Upgrade."),
+                            Component.literal("Scan output remains contained in this build.")
+                    ), Optional.empty(), mouseX, mouseY);
+                } else {
+                    graphics.renderTooltip(font, List.of(
+                            Component.literal("Reserved Upgrade Slot"),
+                            Component.literal("Reserved for future Garage-controlled systems."),
+                            Component.literal("No current item is accepted here.")
+                    ), Optional.empty(), mouseX, mouseY);
+                }
                 return;
             }
         }

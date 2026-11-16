@@ -1,0 +1,111 @@
+{
+  "schema": "dirty-studyo-hud-sprite-atlas/1",
+  "size": [
+    2048,
+    352
+  ],
+  "regions": {
+    "assets/power/power_critical_red.png": {
+      "x": 8,
+      "y": 8,
+      "width": 164,
+      "height": 207
+    },
+    "assets/power/power_disabled_grey.png": {
+      "x": 184,
+      "y": 8,
+      "width": 164,
+      "height": 207
+    },
+    "assets/power/power_on_green.png": {
+      "x": 360,
+      "y": 8,
+      "width": 164,
+      "height": 207
+    },
+    "assets/power/power_on_green_emissive.png": {
+      "x": 536,
+      "y": 8,
+      "width": 164,
+      "height": 207
+    },
+    "assets/power/power_red_default.png": {
+      "x": 712,
+      "y": 8,
+      "width": 164,
+      "height": 207
+    },
+    "assets/icons/heat_alert.png": {
+      "x": 888,
+      "y": 8,
+      "width": 115,
+      "height": 124
+    },
+    "assets/icons/heat_alert_flash_on.png": {
+      "x": 1015,
+      "y": 8,
+      "width": 115,
+      "height": 124
+    },
+    "assets/icons/heat_normal.png": {
+      "x": 1142,
+      "y": 8,
+      "width": 115,
+      "height": 124
+    },
+    "assets/icons/fuel_alert.png": {
+      "x": 1269,
+      "y": 8,
+      "width": 132,
+      "height": 106
+    },
+    "assets/icons/fuel_alert_flash_on.png": {
+      "x": 1413,
+      "y": 8,
+      "width": 132,
+      "height": 106
+    },
+    "assets/icons/fuel_normal.png": {
+      "x": 1557,
+      "y": 8,
+      "width": 132,
+      "height": 106
+    },
+    "assets/icons/lubricant_alert.png": {
+      "x": 1701,
+      "y": 8,
+      "width": 132,
+      "height": 105
+    },
+    "assets/icons/lubricant_alert_flash_on.png": {
+      "x": 1845,
+      "y": 8,
+      "width": 132,
+      "height": 105
+    },
+    "assets/icons/lubricant_normal.png": {
+      "x": 8,
+      "y": 227,
+      "width": 132,
+      "height": 105
+    },
+    "assets/bars/heat_fill_100.png": {
+      "x": 152,
+      "y": 227,
+      "width": 330,
+      "height": 55
+    },
+    "assets/bars/lubricant_fill_100.png": {
+      "x": 494,
+      "y": 227,
+      "width": 438,
+      "height": 49
+    },
+    "assets/bars/fuel_fill_100.png": {
+      "x": 944,
+      "y": 227,
+      "width": 438,
+      "height": 45
+    }
+  }
+}

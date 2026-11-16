@@ -20,18 +20,28 @@ Project constants:
 
 ## Hard Rules
 
-- Do not copy code or assets from Immersive Petroleum, Immersive Machinery,
-  Immersive Engineering, or Immersive Aircraft.
-- Immersive Machinery has a documented conditional permission summary in
-  `docs/external-references.md`. That summary allows runtime dependencies and
-  references, and may allow GPLv3 reuse or attributed reference/partial asset
-  use, but only after the implementation gates in that document are satisfied.
-  Until then, do not copy Immersive Machinery code or assets into the repo.
+- Do not copy code or assets from Immersive Petroleum, Immersive Engineering,
+  Immersive Aircraft, Minecraft, NeoForge, or any other third-party project
+  unless a later explicit project rule allows it.
+- Immersive Machinery has a documented permission summary in
+  `docs/external-references.md`. The repository now has GPL-3.0-only licensing
+  and attribution/compliance files (`LICENSE`, `COPYING`, `NOTICE`, `CREDITS`),
+  so GPLv3-compatible Immersive Machinery material may be copied or adapted only
+  when the exact import is recorded in `docs/im-reuse-inventory.md`, upstream
+  notices are preserved, and attribution is added to `NOTICE` and `CREDITS`.
+- The Immersive Machinery reuse allowance does not authorize copying private
+  CurseForge message text, Phase 8 mining work, mixins, native Tunnel Digger GUI
+  modification, Tunnel Digger fluid/item transfer, or reuse from any non-IM
+  dependency.
 - Do not invent registry IDs.
 - Do not implement mixins unless the task explicitly allows it.
 - Do not start Phase 8 unless the user explicitly approves Phase 8 work.
 - Do not implement 5x5/7x7/9x9 mining until explicitly approved.
 - Do not change Tunnel Digger mining behavior unless explicitly approved.
+- Current explicit Phase 8 approval: MK1/MK2/MK3 Industrial Digger mining
+  profile behavior selected by IPM bore heads. This does not authorize mixins,
+  native Tunnel Digger GUI modification, item/fluid transfer into the native
+  Tunnel Digger, or non-IM asset/code reuse.
 - Do not modify the native Tunnel Digger GUI for IPM upgrades.
 - Do not transfer fluids into the Tunnel Digger.
 - Do not re-enable Survey Console final output generation.
@@ -56,9 +66,11 @@ Project constants:
 - Garage redesign: 11x13x10 Industrial Driller Garage with lower hempcrete
   foundation, ramp, and rear 3x3x3 tanks - Done, pending manual runtime
   validation.
-- Manual validation before Phase 8 - Next.
-- Phase 8: 5x5/7x7/9x9 mining research/implementation - Later, only after
-  explicit approval.
+- Manual validation before full Industrial Digger runtime integration - Next.
+- Phase 8: MK1/MK2/MK3 mining profile behavior - Approved and active for the
+  IPM bore-head profile slice only.
+- Phase 8 full Industrial Digger runtime mining integration - Later, after the
+  profile slice is validated.
 
 ## Build Commands
 
@@ -90,6 +102,74 @@ $env:JAVA_HOME = "C:\Path\To\Java21" # JDK root, not the bin folder
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 .\gradlew.bat build
 ```
+
+## Default Codex Execution Workflow
+
+Codex is responsible for executing normal project checks directly in this
+repository. Do not ask Emmanuel to run PowerShell manually unless a step truly
+requires user-only runtime validation, credentials, or interactive game input
+that cannot be automated.
+
+Before editing:
+
+1. Inspect the project root, build system, package manager, relevant config
+   files, and target output.
+2. Use CodeGraph first when `.codegraph/` exists and `codegraph status` is
+   healthy. If CodeGraph is absent or stale, say so and use targeted file reads
+   instead of broad exploration.
+3. Check the dirty worktree and keep edits limited to the requested scope.
+
+After code or resource changes, run the minimum required checks from this
+project root:
+
+```powershell
+.\gradlew.bat compileJava processResources --stacktrace
+.\gradlew.bat test --stacktrace
+.\gradlew.bat build --stacktrace
+```
+
+Run `test` when tests exist or Java logic changed. If there are no test classes
+or the task is documentation-only, report that clearly. Always run
+`build --stacktrace` before considering a code or resource task complete.
+
+For runtime-impacting Minecraft changes, add the narrow runtime check that
+matches the touched area:
+
+- `.\gradlew.bat runClient --stacktrace` for client, rendering, GUI, registry,
+  item/block content, model, texture, or screen behavior.
+- `.\gradlew.bat runServer --stacktrace` for server, shared gameplay, worldgen,
+  data, networking, persistence, or command behavior.
+- `.\gradlew.bat runGameTestServer --stacktrace` when GameTests exist or when a
+  focused automated gameplay/persistence regression can be proven there.
+
+Do not run full manual Minecraft validation after every tiny build. Manual
+Prism/client validation is reserved for changes where automated Gradle checks
+cannot prove the behavior, and the final report must state exactly what remains
+manual.
+
+Use a CI or sandbox workflow when one is already present. If none exists, do not
+add GitHub Actions or other CI files unless Emmanuel explicitly requests it.
+
+Never publish, upload, push a release, or create a public release artifact
+without explicit approval.
+
+Before release preparation, require:
+
+- clean build
+- CI pass if CI is configured
+- final jar path identified
+- changelog and version check
+- clear manual runtime validation notes if runtime testing could not be fully
+  automated
+
+Every completion report must include:
+
+- files changed
+- exact commands run
+- PASS/FAIL result for each command
+- warnings or errors
+- final jar path if a jar was built
+- anything not tested
 
 ## Codex Runtime Permissions
 

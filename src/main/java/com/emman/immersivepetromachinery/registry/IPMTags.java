@@ -11,6 +11,10 @@ public final class IPMTags {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(ImmersivePetroMachinery.MOD_ID, "digger_upgrades")
     );
+    public static final TagKey<Item> BORE_HEADS = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(ImmersivePetroMachinery.MOD_ID, "bore_heads")
+    );
 
     private IPMTags() {
     }

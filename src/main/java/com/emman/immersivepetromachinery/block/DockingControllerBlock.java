@@ -76,6 +76,14 @@ public final class DockingControllerBlock extends HorizontalDirectionalBlock imp
     }
 
     @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        super.onRemove(state, level, pos, newState, movedByPiston);
+        if (!level.isClientSide() && !newState.is(this)) {
+            DockFluidPortAccess.invalidatePortCapabilities(level, pos, state.getValue(FACING));
+        }
+    }
+
+    @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
         scheduleValidation(level, pos);
@@ -195,7 +203,8 @@ public final class DockingControllerBlock extends HorizontalDirectionalBlock imp
                 controllerState.getFuelFluidId(),
                 controllerState.getLubricantAmount(),
                 controllerState.getLubricantCapacity(),
-                controllerState.getLubricantFluidId()
+                controllerState.getLubricantFluidId(),
+                controllerState.getInstalledMiningProfile().orElse(null)
         );
         LOGGER.info(
                 "Opening Industrial Driller Garage Maintenance GUI at {}: valid={}, fuel={}mB, lubricant={}mB, upgradeItems={}, softLocked={}",

@@ -50,9 +50,9 @@ The incorrect form points at a `bin` directory, not a JDK root, and it is Java
 
 ## Current Local Observation
 
-On this machine, plain `java -version` currently reports Java 17 from PATH. The
-project still builds when `JAVA_HOME` is unset because Gradle starts on Java 17
-and the Java 21 toolchain is auto-detected for compilation.
+On this machine, plain `java -version`, `javac -version`, and the Gradle JVM
+currently report Temurin Java 21. The project therefore starts and compiles on
+the required Java 21 runtime without a Java 17 bootstrap.
 
 If Gradle cannot find a Java 21 installation automatically on another machine,
 install a Java 21 JDK and set `JAVA_HOME` to that JDK root before building.

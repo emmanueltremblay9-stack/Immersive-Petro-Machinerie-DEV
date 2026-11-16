@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,8 +37,16 @@ public final class DockFluidPortAccess {
     }
 
     public static void invalidatePortCapabilities(Level level, BlockPos controllerPos, Direction facing) {
-        level.invalidateCapabilities(fuelPortPos(controllerPos, facing));
-        level.invalidateCapabilities(lubricantPortPos(controllerPos, facing));
+        refreshPortCapability(level, fuelPortPos(controllerPos, facing), IPMBlocks.FUEL_PORT.get());
+        refreshPortCapability(level, lubricantPortPos(controllerPos, facing), IPMBlocks.LUBRICANT_PORT.get());
+    }
+
+    private static void refreshPortCapability(Level level, BlockPos portPos, Block port) {
+        level.invalidateCapabilities(portPos);
+        // IE fluid pipes also refresh their cached routes when a neighboring connection changes.
+        if (level.hasChunkAt(portPos) && level.getBlockState(portPos).is(port)) {
+            level.updateNeighborsAt(portPos, port);
+        }
     }
 
     public static BlockPos fuelPortPos(BlockPos controllerPos, Direction facing) {

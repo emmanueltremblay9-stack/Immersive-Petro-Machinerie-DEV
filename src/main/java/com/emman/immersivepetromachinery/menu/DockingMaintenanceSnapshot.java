@@ -1,6 +1,7 @@
 package com.emman.immersivepetromachinery.menu;
 
 import com.emman.immersivepetromachinery.docking.TunnelDiggerDockingDetector;
+import com.emman.immersivepetromachinery.mining.IndustrialDiggerMiningProfile;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -20,11 +21,45 @@ public record DockingMaintenanceSnapshot(
         String fuelFluidId,
         int lubricantAmount,
         int lubricantCapacity,
-        String lubricantFluidId
+        String lubricantFluidId,
+        String miningProfileName,
+        int miningFootprintWidth,
+        int miningBlocksPerLayer,
+        int miningCycleTicks
 ) {
     private static final int MAX_SUMMARY_LENGTH = 256;
     private static final int MAX_FLUID_ID_LENGTH = 128;
     private static final int MAX_DIGGER_NAME_LENGTH = 128;
+    private static final int MAX_PROFILE_NAME_LENGTH = 48;
+    private static final String EMPTY_FLUID_ID = "empty";
+    private static final String UNKNOWN_FLUID_ID = "unknown";
+    private static final String NO_BORE_HEAD_PROFILE = "No bore head";
+
+    public DockingMaintenanceSnapshot {
+        controllerPos = controllerPos == null ? BlockPos.ZERO : controllerPos;
+        platformSummary = trim(defaultText(platformSummary, "controller state unavailable"));
+        detectionStatus = detectionStatus == null ? DetectionDisplayStatus.NOT_CHECKED : detectionStatus;
+        detectionSummary = trim(defaultText(detectionSummary, "not checked"));
+        softLocked = lockedTunnelDigger != null;
+        tunnelDiggerName = trimName(defaultText(
+                tunnelDiggerName,
+                lockedTunnelDigger == null ? "none" : "Tunnel Digger"
+        ));
+        fuelCapacity = nonNegative(fuelCapacity);
+        fuelAmount = clampAmount(fuelAmount, fuelCapacity);
+        fuelFluidId = normalizeFluidId(fuelFluidId, fuelAmount);
+        lubricantCapacity = nonNegative(lubricantCapacity);
+        lubricantAmount = clampAmount(lubricantAmount, lubricantCapacity);
+        lubricantFluidId = normalizeFluidId(lubricantFluidId, lubricantAmount);
+        miningProfileName = trimProfileName(defaultText(miningProfileName, NO_BORE_HEAD_PROFILE));
+        boolean hasMiningProfile = !NO_BORE_HEAD_PROFILE.equals(miningProfileName);
+        miningFootprintWidth = hasMiningProfile ? nonNegative(miningFootprintWidth) : 0;
+        miningBlocksPerLayer = miningFootprintWidth == 0 ? 0 : normalizeBlocksPerLayer(
+                miningBlocksPerLayer,
+                miningFootprintWidth
+        );
+        miningCycleTicks = miningFootprintWidth == 0 ? 0 : nonNegative(miningCycleTicks);
+    }
 
     public static DockingMaintenanceSnapshot notAvailable() {
         return new DockingMaintenanceSnapshot(
@@ -38,10 +73,14 @@ public record DockingMaintenanceSnapshot(
                 "none",
                 0,
                 0,
-                "empty",
+                EMPTY_FLUID_ID,
                 0,
                 0,
-                "empty"
+                EMPTY_FLUID_ID,
+                NO_BORE_HEAD_PROFILE,
+                0,
+                0,
+                0
         );
     }
 
@@ -57,12 +96,17 @@ public record DockingMaintenanceSnapshot(
             String fuelFluidId,
             int lubricantAmount,
             int lubricantCapacity,
-            String lubricantFluidId
+            String lubricantFluidId,
+            @Nullable IndustrialDiggerMiningProfile miningProfile
     ) {
         DetectionDisplayStatus status = DetectionDisplayStatus.from(detection);
-        String tunnelDiggerName = detection != null && detection.candidate() != null
-                ? detection.candidate().displayName()
-                : lockedTunnelDigger == null ? "none" : lockedTunnelDiggerName;
+        String tunnelDiggerName = lockedTunnelDigger != null
+                ? lockedTunnelDiggerName
+                : detection != null && detection.candidate() != null ? detection.candidate().displayName() : "none";
+        String miningProfileName = miningProfile == null ? NO_BORE_HEAD_PROFILE : miningProfile.displayName();
+        int miningFootprintWidth = miningProfile == null ? 0 : miningProfile.footprintWidth();
+        int miningBlocksPerLayer = miningProfile == null ? 0 : miningProfile.blocksPerLayer();
+        int miningCycleTicks = miningProfile == null ? 0 : miningProfile.cycleTicks();
         return new DockingMaintenanceSnapshot(
                 controllerPos,
                 platformValid,
@@ -77,7 +121,11 @@ public record DockingMaintenanceSnapshot(
                 trimFluidId(fuelFluidId),
                 lubricantAmount,
                 lubricantCapacity,
-                trimFluidId(lubricantFluidId)
+                trimFluidId(lubricantFluidId),
+                trimProfileName(miningProfileName),
+                miningFootprintWidth,
+                miningBlocksPerLayer,
+                miningCycleTicks
         );
     }
 
@@ -86,36 +134,48 @@ public record DockingMaintenanceSnapshot(
             return notAvailable();
         }
 
-        BlockPos controllerPos = buffer.readBlockPos();
-        boolean platformValid = buffer.readBoolean();
-        String platformSummary = buffer.readUtf(MAX_SUMMARY_LENGTH);
-        DetectionDisplayStatus detectionStatus = buffer.readEnum(DetectionDisplayStatus.class);
-        String detectionSummary = buffer.readUtf(MAX_SUMMARY_LENGTH);
-        boolean softLocked = buffer.readBoolean();
-        UUID lockedTunnelDigger = buffer.readBoolean() ? buffer.readUUID() : null;
-        String tunnelDiggerName = buffer.readUtf(MAX_DIGGER_NAME_LENGTH);
-        int fuelAmount = buffer.readVarInt();
-        int fuelCapacity = buffer.readVarInt();
-        String fuelFluidId = buffer.readUtf(MAX_FLUID_ID_LENGTH);
-        int lubricantAmount = buffer.readVarInt();
-        int lubricantCapacity = buffer.readVarInt();
-        String lubricantFluidId = buffer.readUtf(MAX_FLUID_ID_LENGTH);
-        return new DockingMaintenanceSnapshot(
-                controllerPos,
-                platformValid,
-                platformSummary,
-                detectionStatus,
-                detectionSummary,
-                softLocked,
-                lockedTunnelDigger,
-                tunnelDiggerName,
-                fuelAmount,
-                fuelCapacity,
-                fuelFluidId,
-                lubricantAmount,
-                lubricantCapacity,
-                lubricantFluidId
-        );
+        try {
+            BlockPos controllerPos = buffer.readBlockPos();
+            boolean platformValid = buffer.readBoolean();
+            String platformSummary = buffer.readUtf(MAX_SUMMARY_LENGTH);
+            DetectionDisplayStatus detectionStatus = buffer.readEnum(DetectionDisplayStatus.class);
+            String detectionSummary = buffer.readUtf(MAX_SUMMARY_LENGTH);
+            boolean softLocked = buffer.readBoolean();
+            UUID lockedTunnelDigger = buffer.readBoolean() ? buffer.readUUID() : null;
+            String tunnelDiggerName = buffer.readUtf(MAX_DIGGER_NAME_LENGTH);
+            int fuelAmount = buffer.readVarInt();
+            int fuelCapacity = buffer.readVarInt();
+            String fuelFluidId = buffer.readUtf(MAX_FLUID_ID_LENGTH);
+            int lubricantAmount = buffer.readVarInt();
+            int lubricantCapacity = buffer.readVarInt();
+            String lubricantFluidId = buffer.readUtf(MAX_FLUID_ID_LENGTH);
+            String miningProfileName = buffer.readUtf(MAX_PROFILE_NAME_LENGTH);
+            int miningFootprintWidth = buffer.readVarInt();
+            int miningBlocksPerLayer = buffer.readVarInt();
+            int miningCycleTicks = buffer.readVarInt();
+            return new DockingMaintenanceSnapshot(
+                    controllerPos,
+                    platformValid,
+                    platformSummary,
+                    detectionStatus,
+                    detectionSummary,
+                    softLocked,
+                    lockedTunnelDigger,
+                    tunnelDiggerName,
+                    fuelAmount,
+                    fuelCapacity,
+                    fuelFluidId,
+                    lubricantAmount,
+                    lubricantCapacity,
+                    lubricantFluidId,
+                    miningProfileName,
+                    miningFootprintWidth,
+                    miningBlocksPerLayer,
+                    miningCycleTicks
+            );
+        } catch (RuntimeException exception) {
+            return notAvailable();
+        }
     }
 
     public void write(RegistryFriendlyByteBuf buffer) {
@@ -138,10 +198,29 @@ public record DockingMaintenanceSnapshot(
         buffer.writeVarInt(lubricantAmount);
         buffer.writeVarInt(lubricantCapacity);
         buffer.writeUtf(trimFluidId(lubricantFluidId), MAX_FLUID_ID_LENGTH);
+        buffer.writeUtf(trimProfileName(miningProfileName), MAX_PROFILE_NAME_LENGTH);
+        buffer.writeVarInt(miningFootprintWidth);
+        buffer.writeVarInt(miningBlocksPerLayer);
+        buffer.writeVarInt(miningCycleTicks);
     }
 
     public String lockedTunnelDiggerText() {
         return lockedTunnelDigger == null ? "none" : tunnelDiggerName;
+    }
+
+    public String miningProfileText() {
+        if (miningFootprintWidth <= 0) {
+            return miningProfileName;
+        }
+
+        return miningProfileName
+                + " "
+                + miningFootprintWidth
+                + "x"
+                + miningFootprintWidth
+                + " ("
+                + miningBlocksPerLayer
+                + " blocks/layer)";
     }
 
     private static String trim(String value) {
@@ -154,6 +233,41 @@ public record DockingMaintenanceSnapshot(
 
     private static String trimName(String value) {
         return value.length() <= MAX_DIGGER_NAME_LENGTH ? value : value.substring(0, MAX_DIGGER_NAME_LENGTH);
+    }
+
+    private static String trimProfileName(String value) {
+        return value.length() <= MAX_PROFILE_NAME_LENGTH ? value : value.substring(0, MAX_PROFILE_NAME_LENGTH);
+    }
+
+    private static String defaultText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private static int nonNegative(int value) {
+        return Math.max(0, value);
+    }
+
+    private static int clampAmount(int amount, int capacity) {
+        return Math.min(nonNegative(amount), capacity);
+    }
+
+    private static String normalizeFluidId(String fluidId, int amount) {
+        if (amount <= 0) {
+            return EMPTY_FLUID_ID;
+        }
+
+        String normalized = trimFluidId(defaultText(fluidId, UNKNOWN_FLUID_ID));
+        return EMPTY_FLUID_ID.equals(normalized) ? UNKNOWN_FLUID_ID : normalized;
+    }
+
+    private static int normalizeBlocksPerLayer(int blocksPerLayer, int footprintWidth) {
+        int expectedBlocks = squareBlockCount(footprintWidth);
+        return blocksPerLayer == expectedBlocks ? blocksPerLayer : expectedBlocks;
+    }
+
+    private static int squareBlockCount(int footprintWidth) {
+        long blocks = (long) footprintWidth * footprintWidth;
+        return blocks > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) blocks;
     }
 
     public enum DetectionDisplayStatus {

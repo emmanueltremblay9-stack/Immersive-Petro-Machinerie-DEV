@@ -1,0 +1,31 @@
+Immersive Petro-Machinery License
+
+Copyright (C) 2026 Emmanuel Tremblay and contributors.
+
+Immersive Petro-Machinery is free software: you can redistribute it and/or
+modify it under the terms of the GNU General Public License as published by the
+Free Software Foundation, version 3 of the License only.
+
+Immersive Petro-Machinery is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Immersive Petro-Machinery. If not, see <https://www.gnu.org/licenses/>.
+
+SPDX-License-Identifier: GPL-3.0-only
+
+This license applies to original Immersive Petro-Machinery source code, data,
+assets, documentation, build scripts, and packaged mod artifacts unless a file,
+directory, or dependency explicitly states otherwise.
+
+Third-party Minecraft mods, libraries, and tools declared as dependencies remain
+under their own licenses. This project does not relicense Immersive Machinery,
+Immersive Petroleum, Immersive Engineering, Immersive Aircraft, NeoForge,
+Minecraft, Gradle, or any other upstream dependency.
+
+Immersive Machinery code or assets may be copied or adapted into this repository
+only when the import is compatible with GPL-3.0-only and is recorded in
+`docs/im-reuse-inventory.md`, `NOTICE`, and `CREDITS`. Runtime references and
+dependency declarations are not copied material.
